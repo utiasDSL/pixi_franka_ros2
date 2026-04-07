@@ -6,7 +6,7 @@
 Get started with  [`franka_ros2`](https://github.com/frankarobotics/franka_ros2) faster using pixi:
 ```bash
 pixi run setup
-pixi run -e jazzy ros2 launch franka_brigup franka.launch.py robot_ip:=XXX.XXX.XXX.XXX load_gripper:=true
+pixi run -e jazzy ros2 launch franka_bringup franka.launch.py robot_ip:=XXX.XXX.XXX.XXX load_gripper:=false
 ```
 
 #### Use CRISP for control
@@ -17,7 +17,7 @@ Control the robots [CRISP](https://utiasdsl.github.io/crisp_controllers/) contro
 pixi run crisp-clone  
 pixi run build
 
-pixi run -e jazzy franka robot_ip:=XXX.XXX.XXX.XXX controllers_yaml:=config/controllers.yaml load_gripper:=true
+pixi run -e jazzy franka robot_ip:=XXX.XXX.XXX.XXX controllers_yaml:=config/controllers.yaml load_gripper:=false
 ```
 
 In a different terminal test following a figure-eight with the example file:
@@ -28,12 +28,14 @@ pixi run crisp-figure-eight
 Or simple teleop with fixed orientation:
 ```bash
 # Terminal A
-pixi run -e jazzy franka robot_ip:=XXX.XXX.XXX.XXX controllers_yaml:=config/controllers.yaml load_gripper:=true namespace:=left
+pixi run -e jazzy franka robot_ip:=XXX.XXX.XXX.XXX controllers_yaml:=config/controllers.yaml load_gripper:=false namespace:=left
 
 # Terminal B
-pixi run -e jazzy franka robot_ip:=YYY.YYY.YYY.YYY controllers_yaml:=config/controllers.yaml load_gripper:=true namespace:=right
+pixi run -e jazzy franka robot_ip:=YYY.YYY.YYY.YYY controllers_yaml:=config/controllers.yaml load_gripper:=false namespace:=right
 
 # Terminal C runs a crisp_py example where teleop is enabled
 pixi run crisp-teleop
 ```
+
+Enable FCI on the arm(s) before launching controllers using your usual manual prep script.
 

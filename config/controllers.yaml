@@ -103,6 +103,11 @@
       joint_trajectory_controller:
         type: joint_trajectory_controller/JointTrajectoryController
 
+      external_wrench_broadcaster:
+        type: franka_broadcasters/ExternalWrenchBroadcaster
+
+      external_torques_broadcaster:
+        type: franka_broadcasters/ExternalTorquesBroadcaster
 
 /**:
   cartesian_elbow_example_controller:
@@ -246,6 +251,34 @@
         - 5.0
 
 /**:
+  external_torques_broadcaster:
+    ros__parameters:
+      joints:
+        - fr3_joint1
+        - fr3_joint2
+        - fr3_joint3
+        - fr3_joint4
+        - fr3_joint5
+        - fr3_joint6
+        - fr3_joint7
+
+      end_effector_frame: fr3_hand_tcp
+      base_frame: base
+
+  external_wrench_broadcaster:
+    ros__parameters:
+      joints:
+        - fr3_joint1
+        - fr3_joint2
+        - fr3_joint3
+        - fr3_joint4
+        - fr3_joint5
+        - fr3_joint6
+        - fr3_joint7
+
+      end_effector_frame: fr3_hand_tcp
+      base_frame: base
+
   twist_broadcaster:
     ros__parameters:
       joints:
