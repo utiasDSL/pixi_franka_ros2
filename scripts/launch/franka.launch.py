@@ -111,7 +111,14 @@ def generate_robot_nodes(context):
                 context
             ),
         },
-    ).toprettyxml(indent="  ")
+    ).toxml()
+
+    external_broadcaster_ros_args = [
+        (
+            "--controller-ros-args="
+            f"--ros-args --param robot_description:={robot_description}"
+        )
+    ]
 
     namespace = LaunchConfiguration("namespace").perform(context)
 
@@ -197,14 +204,22 @@ def generate_robot_nodes(context):
             package="controller_manager",
             executable="spawner",
             namespace=namespace,
-            arguments=["external_wrench_broadcaster"],
+            arguments=[
+                "external_wrench_broadcaster",
+                *external_broadcaster_ros_args,
+            ],
+            condition=IfCondition(LaunchConfiguration("load_external_broadcasters")),
             output="screen",
         ),
         Node(
             package="controller_manager",
             executable="spawner",
             namespace=namespace,
-            arguments=["external_torques_broadcaster"],
+            arguments=[
+                "external_torques_broadcaster",
+                *external_broadcaster_ros_args,
+            ],
+            condition=IfCondition(LaunchConfiguration("load_external_broadcasters")),
             output="screen",
         ),
         Node(
@@ -289,6 +304,14 @@ def generate_launch_description():
                 [FindPackageShare("franka_bringup"), "config", "controllers.yaml"]
             ),
             description="Override the default controllers.yaml file.",
+        ),
+        DeclareLaunchArgument(
+            "load_external_broadcasters",
+            default_value="true",
+            description=(
+                "Spawn external_wrench_broadcaster and "
+                "external_torques_broadcaster"
+            ),
         ),
     ]
 
