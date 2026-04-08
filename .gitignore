@@ -1,9 +1,15 @@
 # pixi environments
 .pixi
-.
-build
-log
-install
-build
-src
+
+# build artifacts (per-distro and generic)
+build/
+build_*/
+log/
+log_*/
+install/
+install_*/
+
+# cloned sources
+src/
+
 scripts/launch/__pycache__

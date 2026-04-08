@@ -69,6 +69,10 @@
 ############################################################################
 
 
+import os
+import tempfile
+import yaml
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.actions import OpaqueFunction, Shutdown
@@ -113,12 +117,45 @@ def generate_robot_nodes(context):
         },
     ).toxml()
 
-    external_broadcaster_ros_args = [
-        (
-            "--controller-ros-args="
-            f"--ros-args --param robot_description:={robot_description}"
-        )
-    ]
+    # Write robot_description to a temp param file so that controllers
+    # running on their own node (jazzy+) can access it via --param-file.
+    _broadcaster_param_file = tempfile.NamedTemporaryFile(
+        mode="w", prefix="broadcaster_params_", suffix=".yaml", delete=False
+    )
+    yaml.dump(
+        {"robot_description": robot_description},
+        _broadcaster_param_file,
+    )
+    _broadcaster_param_file.close()
+    broadcaster_param_file = _broadcaster_param_file.name
+
+    ros_distro = os.environ.get("ROS_DISTRO", "").lower()
+    use_controller_ros_args = ros_distro in {"jazzy", "kilted", "rolling"}
+
+    if use_controller_ros_args:
+        external_wrench_spawner_arguments = [
+            "external_wrench_broadcaster",
+            "--controller-ros-args",
+            "--params-file",
+            broadcaster_param_file,
+        ]
+        external_torques_spawner_arguments = [
+            "external_torques_broadcaster",
+            "--controller-ros-args",
+            "--params-file",
+            broadcaster_param_file,
+        ]
+    else:
+        external_wrench_spawner_arguments = [
+            "external_wrench_broadcaster",
+            "--param-file",
+            broadcaster_param_file,
+        ]
+        external_torques_spawner_arguments = [
+            "external_torques_broadcaster",
+            "--param-file",
+            broadcaster_param_file,
+        ]
 
     namespace = LaunchConfiguration("namespace").perform(context)
 
@@ -204,10 +241,7 @@ def generate_robot_nodes(context):
             package="controller_manager",
             executable="spawner",
             namespace=namespace,
-            arguments=[
-                "external_wrench_broadcaster",
-                *external_broadcaster_ros_args,
-            ],
+            arguments=external_wrench_spawner_arguments,
             condition=IfCondition(LaunchConfiguration("load_external_broadcasters")),
             output="screen",
         ),
@@ -215,10 +249,7 @@ def generate_robot_nodes(context):
             package="controller_manager",
             executable="spawner",
             namespace=namespace,
-            arguments=[
-                "external_torques_broadcaster",
-                *external_broadcaster_ros_args,
-            ],
+            arguments=external_torques_spawner_arguments,
             condition=IfCondition(LaunchConfiguration("load_external_broadcasters")),
             output="screen",
         ),

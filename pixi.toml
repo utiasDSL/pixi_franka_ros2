@@ -27,6 +27,8 @@ jazzy = { features = ["jazzy", "dev", "extra"] }
 jazzy-crisp = { features = ["jazzy", "dev", "extra", "crisp"] }
 humble = { features = ["humble", "dev", "extra"] }
 humble-crisp = { features = ["humble", "dev", "extra", "crisp"] }
+kilted = { features = ["kilted", "dev", "extra"] }
+kilted-crisp = { features = ["kilted", "dev", "extra", "crisp"] }
 
 # feature.humble
 [feature.humble]
@@ -54,6 +56,7 @@ ros-humble-generate-parameter-library = ">=0.3.9,<0.4"
 [feature.humble.tasks]
 clone = "git clone https://github.com/frankarobotics/franka_ros2.git -b humble src/franka_ros2 && git clone https://github.com/frankarobotics/franka_description.git src/franka_description && git clone --recurse-submodules https://github.com/frankarobotics/libfranka.git src/libfranka"
 update-libfranka = "cd src/libfranka && git submodule update --init --recursive && cd ../../"
+apply-patches = "bash scripts/apply_patches.sh"
 ignore-gazebo = "touch src/franka_ros2/franka_gazebo/COLCON_IGNORE"
 build = "colcon --log-base log_humble build --symlink-install --build-base build_humble --install-base install_humble --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -Wno-dev"
 setup = { depends-on = [
@@ -95,6 +98,42 @@ apply-patches = "bash scripts/apply_patches.sh"
 ignore-gazebo = "touch src/franka_ros2/franka_gazebo/COLCON_IGNORE"
 build = "colcon --log-base log_jazzy build --symlink-install --build-base build_jazzy --install-base install_jazzy --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -Wno-dev"
 clone-crisp = "git clone https://github.com/utiasdsl/crisp_controllers.git src/crisp_controllers"
+setup = { depends-on = [
+    "clone",
+    "update-libfranka",
+    "apply-patches",
+    "ignore-gazebo",
+    "build",
+] }
+franka = "ros2 launch scripts/launch/franka.launch.py"
+
+# kilted
+[feature.kilted]
+channels = ["https://prefix.dev/robostack-kilted", "https://fast.prefix.dev/conda-forge"]
+
+[feature.kilted.dependencies]
+colcon-common-extensions = "*"
+pinocchio = ">=3.7.0,<4"
+poco = ">=1.14.2,<2"
+ros-kilted-ament-cmake = "*"
+ros-kilted-generate-parameter-library = "*"
+ros-kilted-ros-environment = "*"
+ros-kilted-joint-state-publisher = "*"
+ros-kilted-launch = "*"
+ros-kilted-rmw-cyclonedds-cpp = "*"
+ros-kilted-robot-state-publisher = "*"
+ros-kilted-ros2-control = "*"
+ros-kilted-ros2-control-cmake = "*"
+ros-kilted-ros2-controllers = "*"
+ros-kilted-xacro = "*"
+rosdep = "*"
+
+[feature.kilted.tasks]
+clone = "git clone https://github.com/frankarobotics/franka_ros2.git -b jazzy src/franka_ros2 && git clone https://github.com/frankarobotics/franka_description.git src/franka_description && git clone --recurse-submodules https://github.com/frankarobotics/libfranka.git src/libfranka"
+update-libfranka = "cd src/libfranka && git submodule update --init --recursive && cd ../../"
+apply-patches = "bash scripts/apply_patches.sh"
+ignore-gazebo = "touch src/franka_ros2/franka_gazebo/COLCON_IGNORE"
+build = "colcon --log-base log_kilted build --symlink-install --build-base build_kilted --install-base install_kilted --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -Wno-dev"
 setup = { depends-on = [
     "clone",
     "update-libfranka",
