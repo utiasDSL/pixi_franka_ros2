@@ -137,12 +137,14 @@ def generate_robot_nodes(context):
             "external_wrench_broadcaster",
             "--controller-ros-args",
             "--params-file",
+            "--controller-ros-args",
             broadcaster_param_file,
         ]
         external_torques_spawner_arguments = [
             "external_torques_broadcaster",
             "--controller-ros-args",
             "--params-file",
+            "--controller-ros-args",
             broadcaster_param_file,
         ]
     else:

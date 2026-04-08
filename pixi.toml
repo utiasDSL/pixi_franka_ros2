@@ -109,7 +109,10 @@ franka = "ros2 launch scripts/launch/franka.launch.py"
 
 # kilted
 [feature.kilted]
-channels = ["https://prefix.dev/robostack-kilted", "https://fast.prefix.dev/conda-forge"]
+channels = [
+    "https://prefix.dev/robostack-kilted",
+    "https://fast.prefix.dev/conda-forge",
+]
 
 [feature.kilted.dependencies]
 colcon-common-extensions = "*"
@@ -120,11 +123,17 @@ ros-kilted-generate-parameter-library = "*"
 ros-kilted-ros-environment = "*"
 ros-kilted-joint-state-publisher = "*"
 ros-kilted-launch = "*"
+ros-kilted-launch-ros = "*"
+ros-kilted-moveit-core = "*"
+ros-kilted-moveit-msgs = "*"
 ros-kilted-rmw-cyclonedds-cpp = "*"
 ros-kilted-robot-state-publisher = "*"
 ros-kilted-ros2-control = "*"
 ros-kilted-ros2-control-cmake = "*"
 ros-kilted-ros2-controllers = "*"
+ros-kilted-rosidl-default-generators = "*"
+ros-kilted-ros2launch = "*"
+ros-kilted-visualization-msgs = "*"
 ros-kilted-xacro = "*"
 rosdep = "*"
 

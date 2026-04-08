@@ -1,13 +1,13 @@
 # pixi environments
 .pixi
 
-# build artifacts (per-distro and generic)
+# colcon build artifacts (generic and per-distro)
 build/
-build_*/
-log/
-log_*/
+build*/
 install/
-install_*/
+install*/
+log/
+log*/
 
 # cloned sources
 src/
