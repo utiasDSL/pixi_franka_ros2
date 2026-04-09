@@ -331,6 +331,10 @@
 
       nullspace: 
         stiffness: 0.0
+      
+      # log:
+      #   enabled: true
+      #   timing: true
 
       use_friction: true
       use_coriolis_compensation: true
@@ -375,6 +379,11 @@
           fr3_joint6.value: 30.0
           fr3_joint7.value: 10.0
 
+      # log:
+      #   enabled: true
+      #   timing: true
+
+      
       use_friction: true
       use_coriolis_compensation: true
       use_local_jacobian: true
@@ -463,3 +472,7 @@
         fr3_joint5: { p: 250., d: 10., i: 0., i_clamp: 1. }
         fr3_joint6: { p: 150., d: 10., i: 0., i_clamp: 1. }
         fr3_joint7: { p: 50., d: 5., i: 0., i_clamp: 1. }
+
+      # log:
+      #   enabled: true
+      #   timing: true

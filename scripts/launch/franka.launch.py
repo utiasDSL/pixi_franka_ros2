@@ -74,7 +74,7 @@ import tempfile
 import yaml
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
 from launch.actions import OpaqueFunction, Shutdown
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -92,6 +92,7 @@ def generate_robot_nodes(context):
     load_gripper_launch_configuration = LaunchConfiguration("load_gripper").perform(
         context
     )
+    hand_launch_configuration = LaunchConfiguration("hand").perform(context)
     load_gripper = load_gripper_launch_configuration.lower() == "true"
     urdf_path = PathJoinSubstitution(
         [
@@ -107,7 +108,7 @@ def generate_robot_nodes(context):
             "arm_id": LaunchConfiguration("arm_id").perform(context),
             "arm_prefix": LaunchConfiguration("arm_prefix").perform(context),
             "robot_ip": LaunchConfiguration("robot_ip").perform(context),
-            "hand": load_gripper_launch_configuration,
+            "hand": hand_launch_configuration,
             "use_fake_hardware": LaunchConfiguration("use_fake_hardware").perform(
                 context
             ),
@@ -168,6 +169,17 @@ def generate_robot_nodes(context):
         "franka_gripper/joint_states",
     ]
     joint_state_rate = int(LaunchConfiguration("joint_state_rate").perform(context))
+    controller_spawn_delay = float(
+        LaunchConfiguration("controller_spawn_delay").perform(context)
+    )
+    spawner_timeout_arguments = [
+        "--controller-manager-timeout",
+        "120",
+        "--service-call-timeout",
+        "60",
+        "--switch-timeout",
+        "60",
+    ]
 
     nodes = [
         Node(
@@ -208,59 +220,131 @@ def generate_robot_nodes(context):
             package="controller_manager",
             executable="spawner",
             namespace=namespace,
-            arguments=["joint_state_broadcaster"],
+            arguments=["joint_state_broadcaster"] + spawner_timeout_arguments,
             output="screen",
         ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            namespace=namespace,
-            arguments=["pose_broadcaster"],
-            output="screen",
+        TimerAction(
+            period=controller_spawn_delay,
+            actions=[
+                Node(
+                    package="controller_manager",
+                    executable="spawner",
+                    namespace=namespace,
+                    arguments=["pose_broadcaster"] + spawner_timeout_arguments,
+                    output="screen",
+                )
+            ],
         ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            namespace=namespace,
-            arguments=["cartesian_impedance_controller", "--inactive"],
-            output="screen",
+        TimerAction(
+            period=2.0 * controller_spawn_delay,
+            actions=[
+                Node(
+                    package="controller_manager",
+                    executable="spawner",
+                    namespace=namespace,
+                    arguments=["twist_broadcaster"] + spawner_timeout_arguments,
+                    condition=IfCondition(
+                        LaunchConfiguration("load_twist_broadcaster")
+                    ),
+                    output="screen",
+                )
+            ],
         ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            namespace=namespace,
-            arguments=["gravity_compensation", "--inactive"],
-            output="screen",
+        TimerAction(
+            period=3.0 * controller_spawn_delay,
+            actions=[
+                Node(
+                    package="controller_manager",
+                    executable="spawner",
+                    namespace=namespace,
+                    arguments=["cartesian_impedance_controller", "--inactive"]
+                    + spawner_timeout_arguments,
+                    condition=IfCondition(
+                        LaunchConfiguration("load_optional_controllers")
+                    ),
+                    output="screen",
+                )
+            ],
         ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            namespace=namespace,
-            arguments=["joint_impedance_controller", "--inactive"],
-            output="screen",
+        TimerAction(
+            period=4.0 * controller_spawn_delay,
+            actions=[
+                Node(
+                    package="controller_manager",
+                    executable="spawner",
+                    namespace=namespace,
+                    arguments=["gravity_compensation", "--inactive"]
+                    + spawner_timeout_arguments,
+                    condition=IfCondition(
+                        LaunchConfiguration("load_optional_controllers")
+                    ),
+                    output="screen",
+                )
+            ],
         ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            namespace=namespace,
-            arguments=external_wrench_spawner_arguments,
-            condition=IfCondition(LaunchConfiguration("load_external_broadcasters")),
-            output="screen",
+        TimerAction(
+            period=5.0 * controller_spawn_delay,
+            actions=[
+                Node(
+                    package="controller_manager",
+                    executable="spawner",
+                    namespace=namespace,
+                    arguments=["joint_impedance_controller", "--inactive"]
+                    + spawner_timeout_arguments,
+                    condition=IfCondition(
+                        LaunchConfiguration("load_optional_controllers")
+                    ),
+                    output="screen",
+                )
+            ],
         ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            namespace=namespace,
-            arguments=external_torques_spawner_arguments,
-            condition=IfCondition(LaunchConfiguration("load_external_broadcasters")),
-            output="screen",
+        TimerAction(
+            period=6.0 * controller_spawn_delay,
+            actions=[
+                Node(
+                    package="controller_manager",
+                    executable="spawner",
+                    namespace=namespace,
+                    arguments=external_wrench_spawner_arguments
+                    + spawner_timeout_arguments,
+                    condition=IfCondition(
+                        LaunchConfiguration("load_external_broadcasters")
+                    ),
+                    output="screen",
+                )
+            ],
         ),
-        Node(
-            package="controller_manager",
-            executable="spawner",
-            namespace=namespace,
-            arguments=["joint_trajectory_controller", "--inactive"],
-            output="screen",
+        TimerAction(
+            period=7.0 * controller_spawn_delay,
+            actions=[
+                Node(
+                    package="controller_manager",
+                    executable="spawner",
+                    namespace=namespace,
+                    arguments=external_torques_spawner_arguments
+                    + spawner_timeout_arguments,
+                    condition=IfCondition(
+                        LaunchConfiguration("load_external_broadcasters")
+                    ),
+                    output="screen",
+                )
+            ],
+        ),
+        TimerAction(
+            period=8.0 * controller_spawn_delay,
+            actions=[
+                Node(
+                    package="controller_manager",
+                    executable="spawner",
+                    namespace=namespace,
+                    arguments=["joint_trajectory_controller", "--inactive"]
+                    + spawner_timeout_arguments,
+                    condition=IfCondition(
+                        LaunchConfiguration("load_joint_trajectory_controller")
+                    ),
+                    output="screen",
+                )
+            ],
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -319,6 +403,11 @@ def generate_launch_description():
             description="Use Franka Gripper as an end-effector",
         ),
         DeclareLaunchArgument(
+            "hand",
+            default_value="true",
+            description="Include hand/end-effector links in URDF for FK to hand_tcp frame.",
+        ),
+        DeclareLaunchArgument(
             "use_fake_hardware", default_value="false", description="Use fake hardware"
         ),
         DeclareLaunchArgument(
@@ -340,11 +429,34 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "load_external_broadcasters",
-            default_value="true",
+            default_value="false",
             description=(
                 "Spawn external_wrench_broadcaster and "
                 "external_torques_broadcaster"
             ),
+        ),
+        DeclareLaunchArgument(
+            "load_twist_broadcaster",
+            default_value="true",
+            description="Spawn and activate twist_broadcaster.",
+        ),
+        DeclareLaunchArgument(
+            "load_optional_controllers",
+            default_value="true",
+            description=(
+                "Spawn cartesian_impedance_controller, gravity_compensation, "
+                "and joint_impedance_controller in inactive state."
+            ),
+        ),
+        DeclareLaunchArgument(
+            "load_joint_trajectory_controller",
+            default_value="true",
+            description="Spawn joint_trajectory_controller in inactive state.",
+        ),
+        DeclareLaunchArgument(
+            "controller_spawn_delay",
+            default_value="2.5",
+            description="Delay in seconds between controller spawner processes.",
         ),
     ]
 

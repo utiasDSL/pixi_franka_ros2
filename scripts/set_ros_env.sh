@@ -1,9 +1,13 @@
-export ROS_DOMAIN_ID=100
+if [ -z "${ROS_DOMAIN_ID:-}" ]; then
+	export ROS_DOMAIN_ID=100
+fi
 # export RMW_IMPLEMENTATION=rmw_zenoh_cpp
 # export ZENOH_ROUTER_CHECK_ATTEMPTS=-1
 # export ZENOH_CONFIG_OVERRIDE='listen/endpoints=["tcp/10.157.163.121:7447"];scouting/multicast/enabled=true'
 
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+if [ -z "${RMW_IMPLEMENTATION:-}" ]; then
+	export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+fi
 export ROS_NETWORK_INTERFACE="enx607d0937fb24"
 
 
@@ -11,7 +15,9 @@ SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
-export CYCLONEDDS_URI=file:///$SCRIPT_DIR/cyclone_config.xml
+if [ "$RMW_IMPLEMENTATION" = "rmw_cyclonedds_cpp" ] && [ -z "${CYCLONEDDS_URI:-}" ]; then
+	export CYCLONEDDS_URI=file://$SCRIPT_DIR/cyclone_config.xml
+fi
 
 # Source the correct workspace overlay based on ROS_DISTRO when available.
 if [ -n "$ROS_DISTRO" ] && [ -f "$REPO_DIR/install_${ROS_DISTRO}/setup.bash" ]; then
